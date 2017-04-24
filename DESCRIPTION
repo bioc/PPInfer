@@ -16,7 +16,7 @@ Description: Interactions between proteins occur in many, if not most,
         the known functions of its neighboring proteins on a PPI
         network. This package identifies such proteins often involved
         in the same or similar biological functions.
-Version: 1.0.0
+Version: 1.1.0
 Date: 2017-03-12
 Author: Dongmin Jung, Xijin Ge
 Maintainer: Dongmin Jung <dmdmjung@gmail.com>
