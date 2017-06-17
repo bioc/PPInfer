@@ -1,0 +1,9 @@
+
+exportPattern("^[^\\.]")
+
+import(biomaRt)
+import(igraph)
+import(kernlab)
+import(STRINGdb)
+import(yeastExpData)
+
