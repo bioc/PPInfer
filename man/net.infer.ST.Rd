@@ -14,7 +14,7 @@ net.infer.ST(target, kernel, top = NULL, C1 = 1, nu = 0.2,
 
 \arguments{
   \item{target}{
-list of interesting proteins or target class
+set of interesting proteins or target class
 }
   \item{kernel}{
 the regularized Laplacian matrix for a graph

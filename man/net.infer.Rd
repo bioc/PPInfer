@@ -5,7 +5,7 @@
 Inferring functionally related proteins using networks
 }
 \description{
-The OCSVM and classical SVM are sequentially used. First, we apply the OCSVM by training a one-class classifier using the data from the known class only and classify the background data. Let n be the number of proteins in the target class. This model is used to predict remaining N-n proteins in the background. Proteins with zero similarity with the target class or presence data are extracted. Then they are potentially defined as the other class by pseudo-absence selection methods from spatial statistics. For balanced data, it is assumed that two classes contain the same number of proteins. Next, by the classical SVM, these two classes can be used to infer remaining N-2n proteins and to find proteins closely related to the known class or interesting proteins. Note that the number of proteins is not greater than a half of total proteins in a kernel matrix due to N-2n>0. Also, the number of top proteins to be inferred is less than or equal to N-2n.
+Proteins can be classified by using networks to identify functionally closely related proteins.
 }
 \usage{
 net.infer(target, kernel, top = NULL, cross = 0,
@@ -16,7 +16,7 @@ net.infer(target, kernel, top = NULL, cross = 0,
 
 \arguments{
   \item{target}{
-list of interesting proteins or target class
+set of interesting proteins or target class
 }
   \item{kernel}{
 the regularized Laplacian matrix for a graph

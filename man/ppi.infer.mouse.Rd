@@ -14,7 +14,7 @@ ppi.infer.mouse(target, kernel, top = 10, classifier = net.infer,
 
 \arguments{
   \item{target}{
-list of interesting proteins or target class
+set of interesting proteins or target class
 }
   \item{kernel}{
 the regularized Laplacian matrix for a graph

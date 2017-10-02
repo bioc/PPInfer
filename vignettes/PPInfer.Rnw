@@ -27,7 +27,7 @@ options(prompt = " ", continue = " ")
 
 \section{Introduction}
 
-Interactions between proteins occur in many, if not most, biological processes. Most proteins perform their functions in networks associated with other proteins and other biomolecules. This fact has motivated the development of a variety of experimental methods for the identification of protein interactions. This variety has in turn ushered in the development of numerous different computational approaches for modeling and predicting protein interactions. Sometimes an experiment is aimed at identifying proteins closely related to some interesting proteins. A network based statistical learning method is used to infer the putative functions of proteins from the known functions of its neighboring proteins on a PPI network. This package identifies such proteins often involved in the same or similar biological functions.
+Interactions between proteins occur in many, if not most, biological processes. Most proteins perform their functions in networks associated with other proteins and other biomolecules. This fact has motivated the development of a variety of experimental methods for the identification of protein interactions. This variety has in turn ushered in the development of numerous different computational approaches for modeling and predicting protein interactions. Sometimes an experiment is aimed at identifying proteins closely related to some interesting proteins. A network-based statistical learning method is used to infer the putative functions of proteins from the known functions of its neighboring proteins on a PPI network. This package identifies such proteins often involved in the same or similar biological functions.
 
 
 
@@ -68,7 +68,7 @@ library(PPInfer)
 data(litG)
 litG <- igraph.from.graphNEL(litG)
 summary(litG)
-sg <- decompose(litG, min.vertices=50)
+sg <- decompose(litG, min.vertices = 50)
 sg <- sg[[1]]           # largest subgraph
 summary(sg)
 @
@@ -87,7 +87,7 @@ V(sg)[1:10]$color <- "blue"
 \begin{figure}[H]
 \centering
 <<fig=TRUE, height=10, width=10>>=
-plot(sg,layout=layout.kamada.kawai(sg),vertex.size=10)
+plot(sg, layout = layout.kamada.kawai(sg), vertex.size = 10)
 @
 \caption{Network among yeast proteins with target class in blue and remaining proteins in green.}
 \end{figure}
@@ -98,7 +98,7 @@ First, calculate the kernel matrix and choose 10 proteins as a target class. The
 <<>>=
 K <- net.kernel(sg)
 set.seed(123)
-litG.infer <- net.infer(names(V(sg))[1:10], K, top=20, cross = 10)
+litG.infer <- net.infer(names(V(sg))[1:10], K, top = 20, cross = 10)
 litG.infer$CVerror
 index <- match(litG.infer$top,names(V(sg)))
 V(sg)[index]$color <- "red"
@@ -108,7 +108,7 @@ V(sg)[index]$color <- "red"
 \begin{figure}[H]
 \centering
 <<fig=TRUE, height=10, width=10>>=
-plot(sg,layout=layout.kamada.kawai(sg),vertex.size=10)
+plot(sg, layout = layout.kamada.kawai(sg), vertex.size = 10)
 @
 \caption{Red vertices denote the top 20 yeast proteins which are most closely related to 10 proteins of the target class.}
 \end{figure}
@@ -117,11 +117,96 @@ plot(sg,layout=layout.kamada.kawai(sg),vertex.size=10)
 Note that the number of proteins is not greater than a half of total proteins in a kernel matrix due to $N-2n>0$. Also, the number of top proteins to be inferred is less than or equal to $N-2n$. If we use 50 proteins as a target class, then there is an error since $N-2n=-12$. If we use 40 proteins as a target, and want to find top 20 proteins, then the number of available top proteins are only 8, which is the minimum of $N-2n=8$ and 20.
 
 <<echo=TRUE,eval=TRUE,results=verbatim>>=
-litG.infer <- try(net.infer(names(V(sg))[1:50],K,top=20))
+litG.infer <- try(net.infer(names(V(sg))[1:50], K, top = 20))
 cat(litG.infer)
-litG.infer <- net.infer(names(V(sg))[1:40],K,top=20)
+litG.infer <- net.infer(names(V(sg))[1:40], K, top = 20)
 litG.infer$top
 @
+
+
+
+Next, consider the functional enrichment analysis. Here, we use the same kernel but different gene names. For the ORA, we use top 10 proteins among 88 proteins.
+
+<<>>=
+data(examplePathways)
+data(exampleRanks)
+geneNames <- names(exampleRanks)
+
+set.seed(1)
+gene.names <- sample(geneNames, length(V(sg)))
+rownames(K) <- gene.names
+myInterestingGenes <- sample(gene.names, 10)
+
+infer <- net.infer(myInterestingGenes, K)
+gene.id <- infer$top
+@
+
+
+<<results=hide>>=
+# ORA
+result.ORA <- ORA(examplePathways, gene.id[1:10])
+@
+
+
+\begin{figure}[H]
+\centering
+<<fig=TRUE, results=hide>>=
+category <- rownames(result.ORA)
+ORA.dotplot(data.frame(category, result.ORA), category = "category", size = "Size",
+            count = "Count", pvalue = "pvalue", sort = "pvalue") +
+            scale_colour_gradient(low = 'red', high = 'gray', limits=c(0, 0.1))
+@
+\caption{Result from the over-representation analysis with Gene Ontology}
+\end{figure}
+
+
+
+<<>>=
+# GSEA
+index <- !is.na(infer$score)
+gene.id <- infer$top[index]
+scores <- infer$score[index]
+scaled.scores <- as.numeric(scale(scores))
+names(scaled.scores) <- gene.id
+set.seed(1)
+result.GSEA <- fgsea(examplePathways, scaled.scores, nperm=1000)
+@
+
+
+
+\begin{figure}[H]
+\centering
+<<fig=TRUE>>=
+GSEA.barplot(result.GSEA, category = 'pathway', score = 'NES', pvalue = 'pval',
+             numChar = 50, sort = 'NES', decreasing = TRUE) +
+             scale_fill_continuous(low = 'red', high = 'green')
+@
+\caption{Result from the gene set enrichment analysis}
+\end{figure}
+
+
+
+
+\begin{figure}[H]
+\centering
+<<fig=TRUE>>=
+enrich.net(result.GSEA, examplePathways, node.id = 'pathway',
+           pvalue = 'pval', pvalue.cutoff = 0.25, degree.cutoff = 0,
+           n = 100, vertex.label.cex = 0.75, show.legend = FALSE,
+           edge.width = function(x) {5*sqrt(x)},
+           layout=igraph::layout.kamada.kawai)
+@
+\caption{Network from the gene set enrichment analysis}
+\end{figure}
+
+
+In the network, the connection between nodes depends on the proportion of overlapping genes between two categories. The size of nodes is proportional to the size of gene sets. The more significant categories are, the less transparent their nodes are.
+
+
+
+
+
+
 
 
 
@@ -141,7 +226,7 @@ library(httr)
 download.kernel <- function(species, overwrite = FALSE)
 {
   # If they exist, load the matrix. These kernels are calculated from
-  # the STRING database with the version 10 and score  threshold 400.
+  # the STRING database with the version 10 and score threshold 400.
   # There is a progress bar for downloading.
   # species : Only two species, "9606" for human or "10090" for mouse
   # overwrite : overwrite existing files (default: FALSE)
@@ -163,56 +248,10 @@ download.kernel <- function(species, overwrite = FALSE)
   K <- readRDS(paste("K", species, ".rds", sep=""))
   # remove prefix
   rownames(K) <- sub('.*\\.','',rownames(K))
-  colnames(K) <- sub('.*\\.','',colnames(K))
   K
 }
 @
 
-
-
-\subsection{Visualize the overrepresentation analysis}
-
-For the functional enrichment analysis, we can visualize or summarize the result from the overrepresentation analysis.
-
-<<eval=TRUE>>=
-library(ggplot2)
-ORA.plot <- function(object, categories = 10, p.adjust.methods = 'fdr',
-                     color = c("red", "blue"), transparency = 0.5, plot = TRUE)
-{
-  # Visualize the ORA or summarize the result when plot = FALSE.
-  # object : the output from hyperGTest
-  # categories : the number of categories (default: 10)
-  # p.adjust.methods : correction method (default: "fdr")
-  # color : colors for low and high ends of the gradient.
-  # (default: "red" for low and "blue" for high)
-  # transparency : transparency (default: 0.5)
-  # plot : summary of hyperGTest, if FALSE (default: TRUE)
-  
-  result <- summary(object)
-  adjPvalue <- p.adjust(pvalues(object), p.adjust.methods)
-  index <- match(result[,1], names(adjPvalue))
-  adjPvalue <- adjPvalue[index]
-  GOID <- result[index,1]
-  GeneRatio <- result[index,]$Count/result[index,]$Size
-  results <- data.frame(GOID, GeneRatio, adjPvalue, result[index,-1])
-  rownames(results) <- NULL
-  head(results, categories)
-  
-  if(plot == TRUE)
-  {
-    sub.res <- results[1:categories,]
-    sub.res$GOID <- factor(sub.res$GOID, levels=sub.res$GOID[nrow(sub.res):1])
-    ggplot(sub.res, aes_string(x='GeneRatio', y="GOID",
-                               size='Count', color='adjPvalue')) + 
-      geom_point(alpha = transparency) + 
-      scale_color_gradient(low = color[1], high = color[2]) + ylab('')
-  }
-  else
-  {
-    head(results, categories)
-  }
-}
-@
 
 
 
@@ -241,23 +280,29 @@ apoptosis.infer <- ppi.infer.human(list.proteins, K.9606, output="entrezgene", 1
 gene.id <- data.frame(apoptosis.infer$top)[,1]
 head(gene.id)
 
-# functional enrichment
-params <- new("GOHyperGParams", geneIds=gene.id,annotation="org.Hs.eg.db",
-             ontology="BP",pvalueCutoff=0.001,conditional=FALSE,
-             testDirection="over")
+# GO terms
+params <- new("GOHyperGParams", geneIds = gene.id,annotation = "org.Hs.eg.db",
+             ontology = "BP", pvalueCutoff = 0.001, conditional = FALSE,
+             testDirection = "over")
 (hgOver <- hyperGTest(params))
 
-# top 10 categories
-(results = ORA.plot(hgOver, plot=FALSE))
-ORA.plot(hgOver)
+# Top 10 biological functions related to apoptosis by using GO terms
+ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+            count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
+
+# KEGG pathway
+params <- new("KEGGHyperGParams", geneIds = gene.id, annotation = "org.Hs.eg.db",
+              pvalueCutoff = 0.05, testDirection = "over")
+(hgOver <- hyperGTest(params))
+
+# Top 10 biological functions related to apoptosis by using KEGG pathways
+ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+            count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 @
 
-\setkeys{Gin}{width=0.75\textwidth}
 
 
-
-
-We found functionally related top 100 proteins in terms of Entrez-ID by \texttt{ppi.infer.human}. However, we are often interested in biological functions about such inferred proteins. This is the top 10 categories from gene ontology. As we expected, inferred proteins have similar biological functions with the target, apoptosis. Thus this example supports that this model is reliable. Next, take another example. The protein p53 is known for inhibition of cancer. From KEGG pathway, we can find proteins for p53 signaling pathway. The procedure is the same to the previous example, but for the target class.
+We found functionally related top 100 proteins in terms of Entrez-ID by \texttt{ppi.infer.human}. However, we are often interested in biological functions about such inferred proteins. This is the top 10 categories from gene ontology. As we expected, inferred proteins have similar biological functions with the target, apoptosis. Thus this example supports that this model is reliable. Also, we get the similar result from KEGG pathway. Next, take another example. The protein p53 is known for inhibition of cancer. From KEGG pathway, we can find proteins for p53 signaling pathway. The procedure is the same to the previous example, but for the target class.
 
 
 <<eval=FALSE>>=
@@ -267,29 +312,60 @@ library(limma)
 # load target class for p53
 mget('p53 signaling pathway', KEGGPATHNAME2ID)
 kegg.hsa <- getGeneKEGGLinks(species.KEGG='hsa')
-index <- match(kegg.hsa[,2],'path:hsa04115')
-path.04115 <- 1:length(index)
-index2 <- path.04115[index]
-path.04115 <- path.04115[is.na(index2)==FALSE]
-path.04115 <- kegg.hsa[path.04115,1]
+index <- which(kegg.hsa[,2] == 'path:hsa04115')
+path.04115 <- kegg.hsa[index,1]
 head(path.04115)
 
-hsa04115.infer <- ppi.infer.human(path.04115,K.9606,input="entrezgene",
-                             output="entrezgene",100)
+# find top 100 proteins
+hsa04115.infer <- ppi.infer.human(path.04115, K.9606, input = "entrezgene",
+                             output = "entrezgene", nrow(K.9606))
 gene.id <- data.frame(hsa04115.infer$top)[,1]
 head(gene.id)
 rm(K.9606)
 
-# functional enrichment
-params <- new("GOHyperGParams", geneIds=gene.id,annotation="org.Hs.eg.db",
-             ontology="BP",pvalueCutoff=0.001,conditional=FALSE,
-             testDirection="over")
-(hgOver <- hyperGTest(params))
+index <- !is.na(hsa04115.infer$score)
+gene.id <- hsa04115.infer$top[index]
+scores <- hsa04115.infer$score[index]
+scaled.scores <- as.numeric(scale(scores))
 
-# top 10 categories
-(results = ORA.plot(hgOver, plot=FALSE))
-ORA.plot(hgOver)
+names(scaled.scores) <- gene.id
+
+# GO terms
+library(org.Hs.eg.db)
+xx <- as.list(org.Hs.egGO2EG)
+
+set.seed(1)
+fgseaRes <- fgsea(xx, scaled.scores, nperm = 1000)
+
+# Top 10 biological functions related to p53 signaling pathway by using GO terms
+GSEA.barplot(data.frame(fgseaRes, select(GO.db, fgseaRes$pathway, "TERM")),
+            category = 'TERM', score = 'NES', pvalue = 'padj',
+            sort = 'NES', decreasing = TRUE)
+
+# KEGG pathways
+pathway.id <- unique(kegg.hsa[,2])
+
+yy <- list()
+for(i in 1:length(pathway.id))
+{
+  index <- which(kegg.hsa[,2] == pathway.id[i])
+  yy[[i]] <- kegg.hsa[index,1]
+}
+
+library(Category)
+names(yy) <- getPathNames(sub("[[:alpha:]]+....", "", pathway.id))
+yy[which(names(yy) == 'NA')] <- NULL
+
+set.seed(1)
+fgseaRes <- fgsea(yy, scaled.scores, nperm=1000)
+
+# Top 10 biological functions related to p53 signaling pathway by using KEGG pathways
+GSEA.barplot(fgseaRes, category = 'pathway', score = 'NES', pvalue = 'padj')
 @
+
+
+
+
 
 
 
@@ -304,29 +380,47 @@ K.10090 <- download.kernel("10090")
 # load target class
 mget('Acute myeloid leukemia', KEGGPATHNAME2ID)
 kegg.mmu <- getGeneKEGGLinks(species.KEGG='mmu')
-index <- match(kegg.mmu[,2],'path:mmu05221')
-path.05221 <- 1:length(index)
-index2 <- path.05221[index]
-path.05221 <- path.05221[is.na(index2)==FALSE]
-path.05221 <- kegg.mmu[path.05221,1]
+index <- which(kegg.mmu[,2] == 'path:mmu05221')
+path.05221 <- kegg.mmu[index,1]
 head(path.05221)
 
 # find top 100 proteins
-path.05221.infer <- ppi.infer.mouse(path.05221,K.10090,
-                                 input="entrezgene",output="entrezgene",100)
+path.05221.infer <- ppi.infer.mouse(path.05221, K.10090,
+                                 input="entrezgene",output="entrezgene", nrow(K.10090))
 gene.id <- data.frame(path.05221.infer$top)[,1]
 head(gene.id)
 
-# functional enrichment
-params <- new("GOHyperGParams", geneIds=gene.id,annotation="org.Mm.eg.db",
-             ontology="BP",pvalueCutoff=0.001,conditional=FALSE,
-             testDirection="over")
+# ORA
+params <- new("GOHyperGParams", geneIds = gene.id[1:100],
+             annotation = "org.Mm.eg.db",
+             ontology = "BP",pvalueCutoff = 0.001,
+             conditional = FALSE, testDirection = "over")
 (hgOver <- hyperGTest(params))
 
-# top 10 categories
-(results = ORA.plot(hgOver, plot=FALSE))
-ORA.plot(hgOver)
+# Top 10 biological functions related to Acute myeloid leukemia
+ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+            count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
+
+# GSEA
+library(org.Mm.eg.db)
+xx <- as.list(org.Mm.egGO2EG)
+
+index <- !is.na(path.05221.infer$score)
+gene.id <- path.05221.infer$top[index]
+scores <- path.05221.infer$score[index]
+scaled.scores <- as.numeric(scale(scores))
+names(scaled.scores) <- gene.id
+
+set.seed(1)
+fgseaRes <- fgsea(xx, scaled.scores, nperm=1000)
+
+# Top 10 biological functions related to Acute myeloid leukemia
+GSEA.barplot(na.omit(data.frame(fgseaRes, select(GO.db, fgseaRes$pathway, 'TERM'))),
+             category = 'TERM', score = 'NES', pvalue = 'padj',
+             sort = 'NES', decreasing = TRUE)
 @
+
+
 
 The second example is Ras signaling pathway. The Ras proteins are GTPases that function as molecular switches for signaling pathways regulating cell proliferation, survival, growth, migration, differentiation or cytoskeletal dynamism.
 
@@ -334,32 +428,63 @@ The second example is Ras signaling pathway. The Ras proteins are GTPases that f
 # load target class
 mget('Ras signaling pathway', KEGGPATHNAME2ID)
 kegg.mmu <- getGeneKEGGLinks(species.KEGG='mmu')
-index <- match(kegg.mmu[,2],'path:mmu04014')
-path.04014 <- 1:length(index)
-index2 <- path.04014[index]
-path.04014 <- path.04014[is.na(index2)==FALSE]
-path.04014 <- kegg.mmu[path.04014,1]
+index <- which(kegg.mmu[,2] == 'path:mmu04014')
+path.04014 <- kegg.mmu[index,1]
 head(path.04014)
 
 # find top 100 proteins
-path.04014.infer <- ppi.infer.mouse(path.04014,K.10090,
-                                 input="entrezgene",output="entrezgene",100)
+path.04014.infer <- ppi.infer.mouse(path.04014, K.10090,
+                                 input="entrezgene",output="entrezgene", nrow(K.10090))
 gene.id <- data.frame(path.04014.infer$top)[,1]
 head(gene.id)
 rm(K.10090)
 
-# functional enrichment
-params <- new("GOHyperGParams", geneIds=gene.id,annotation="org.Mm.eg.db",
-             ontology="BP",pvalueCutoff=0.001,conditional=FALSE,
-             testDirection="over")
+# ORA
+params <- new("KEGGHyperGParams", geneIds = gene.id[1:100],
+              annotation = "org.Mm.eg.db", pvalueCutoff = 0.05, testDirection = "over")
 (hgOver <- hyperGTest(params))
 
-# top 10 categories
-(results = ORA.plot(hgOver, plot=FALSE))
-ORA.plot(hgOver)
+# Top 10 biological functions related to Ras signaling pathway
+ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+            count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
+
+# GSEA
+kegg.mmu <- getGeneKEGGLinks(species.KEGG='mmu')
+head(kegg.mmu)
+pathway.id <- unique(kegg.mmu[,2])
+
+yy <- list()
+for(i in 1:length(pathway.id))
+{
+  index <- which(kegg.mmu[,2] == pathway.id[i])
+  yy[[i]] <- kegg.mmu[index,1]
+}
+
+names(yy) <- getPathNames(sub("[[:alpha:]]+....", "", pathway.id))
+yy[which(names(yy) == 'NA')] <- NULL
+
+index <- !is.na(path.04014.infer$score)
+gene.id <- path.04014.infer$top[index]
+scores <- path.04014.infer$score[index]
+scaled.scores <- as.numeric(scale(scores))
+names(scaled.scores) <- gene.id
+
+set.seed(1)
+fgseaRes <- fgsea(yy, scaled.scores, nperm = 1000)
+
+# Top 10 biological functions related to Ras signaling pathway
+GSEA.barplot(fgseaRes, category = 'pathway', score = 'NES', pvalue = 'padj')
 @
 
+
+
+
+
+
+
 We discussed about how to infer functionally related proteins for human and mouse. Two functions \texttt{ppi.infer.human} and \texttt{ppi.infer.mouse} are specially designed because popular organisms are human and mouse. However, other kinds of species are also available in \texttt{net.infer} if kernel matrices are given.
+
+
 
 
 \subsection{PPI for other organisms}
@@ -369,69 +494,65 @@ We discussed about how to infer functionally related proteins for human and mous
 string.db.511145 <- STRINGdb$new(version='10', species = 511145)
 string.db.511145.graph <- string.db.511145$get_graph()
 K.511145 <- net.kernel(string.db.511145.graph)
-rownames(K.511145) <- sub("[[:digit:]]+.","",rownames(K.511145))
-colnames(K.511145) <- sub("[[:digit:]]+.","",colnames(K.511145))
+rownames(K.511145) <- sub("[[:digit:]]+.", "", rownames(K.511145))
 
 # load target class (DNA replication)
 kegg.eco <- getGeneKEGGLinks(species.KEGG='eco')
-index <- match(kegg.eco[,2],'path:eco03030')
-path.03030 <- 1:length(index)
-index2 <- path.03030[index]
-path.03030 <- path.03030[is.na(index2)==FALSE]
-path.03030 <- kegg.eco[path.03030,1]
+index <- which(kegg.eco[,2] == 'path:eco03030')
+path.03030 <- kegg.eco[index,1]
 head(path.03030)
 
-sce03030.infer <- net.infer(path.03030, K.511145, top=100)
+sce03030.infer <- net.infer(path.03030, K.511145, top = 100)
 gene.id <- data.frame(sce03030.infer$top)[,1]
 head(gene.id)
 rm(K.511145)
 
 
-
 ############################## yeast
+# string.db.4932 <- STRINGdb$new(version='10', species = 4932)
+# string.db.4932.graph <- string.db.4932$get_graph()
+# K.4932 <- net.kernel(string.db.4932.graph)
+# saveRDS(K.4932, 'K4932.rds')
 K.4932 <- readRDS("K4932.rds")
 dim(K.4932)
-rownames(K.4932) <- sub("[[:digit:]]+.","",rownames(K.4932))
-colnames(K.4932) <- sub("[[:digit:]]+.","",colnames(K.4932))
+rownames(K.4932) <- sub("[[:digit:]]+.", "", rownames(K.4932))
 
 # load target class (Cell cycle)
 kegg.sce <- getGeneKEGGLinks(species.KEGG='sce')
-index <- match(kegg.sce[,2],'path:sce04111')
-path.04111 <- 1:length(index)
-index2 <- path.04111[index]
-path.04111 <- path.04111[is.na(index2)==FALSE]
-path.04111 <- kegg.sce[path.04111,1]
+index <- which(kegg.sce[,2] == 'path:sce04111')
+path.04111 <- kegg.sce[index,1]
 head(path.04111)
 
-sce04111.infer <- net.infer(path.04111, K.4932, top=100)
+sce04111.infer <- net.infer(path.04111, K.4932, top = 100)
 gene.id <- data.frame(sce04111.infer$top)[,1]
 head(gene.id)
 rm(K.4932)
 
 # functional enrichment
-params <- new("GOHyperGParams", geneIds=gene.id,annotation="org.Sc.sgd.db",
-              ontology="BP",pvalueCutoff=0.001,conditional=FALSE,
-              testDirection="over")
+params <- new("GOHyperGParams", geneIds = gene.id, annotation = "org.Sc.sgd.db",
+              ontology = "BP",pvalueCutoff = 0.001, conditional = FALSE,
+              testDirection = "over")
 (hgOver <- hyperGTest(params))
-ORA.plot(hgOver, plot = FALSE)
-ORA.plot(hgOver)
 
+# Top 10 biological functions related to Cell cycle
+ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+            count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
 ############################## C. elegans
+# string.db.6239 <- STRINGdb$new(version='10', species = 6239)
+# string.db.6239.graph <- string.db.6239$get_graph()
+# K.6239 <- net.kernel(string.db.6239.graph)
+# saveRDS(K.6239, 'K6239.rds')
 K.6239 <- readRDS("K6239.rds")
 dim(K.6239)
-rownames(K.6239) <- sub("[[:digit:]]+.","", rownames(K.6239))
-colnames(K.6239) <- sub("[[:digit:]]+.","", colnames(K.6239))
+rownames(K.6239) <- sub("[[:digit:]]+.", "", rownames(K.6239))
 
 # load target class (DNA replication)
 kegg.cel <- getGeneKEGGLinks(species.KEGG='cel')
-index <- match(kegg.cel[,2],'path:cel03030')
-path.03030 <- 1:length(index)
-index2 <- path.03030[index]
-path.03030 <- path.03030[is.na(index2)==FALSE]
-path.03030 <- kegg.cel[path.03030,1]
-path.03030 <- sub('.*\\_','',path.03030)
+index <- which(kegg.cel[,2] == 'path:cel03030')
+path.03030 <- kegg.cel[index,1]
+path.03030 <- sub('.*\\_', '', path.03030)
 head(path.03030)
 
 cel03030.infer <- net.infer(path.03030, K.6239, top=100)
@@ -445,36 +566,37 @@ gene.id2 <- as.vector(na.omit(select(org.Ce.eg.db,
                         keytype = 'SYMBOL')[,2]))
 
 # functional enrichment
-params <- new("GOHyperGParams", geneIds=gene.id2,annotation="org.Ce.eg.db",
-              ontology="BP",pvalueCutoff=0.001,conditional=FALSE,
-              testDirection="over")
+params <- new("GOHyperGParams", geneIds = gene.id2, annotation = "org.Ce.eg.db",
+              ontology = "BP", pvalueCutoff = 0.001, conditional = FALSE,
+              testDirection = "over")
 (hgOver <- hyperGTest(params))
-ORA.plot(hgOver, plot = FALSE)
-ORA.plot(hgOver)
 
+# Top 10 biological functions related to DNA replication
+ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+            count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
 ############################## Drosophila melanogaster
+# string.db.7227 <- STRINGdb$new(version='10', species = 7227)
+# string.db.7227.graph <- string.db.7227$get_graph()
+# K.7227 <- net.kernel(string.db.7227.graph)
+# saveRDS(K.7227, 'K7227.rds')
 K.7227 <- readRDS("K7227.rds")
 dim(K.7227)
-rownames(K.7227) <- sub("[[:digit:]]+.","", rownames(K.7227))
-colnames(K.7227) <- sub("[[:digit:]]+.","", colnames(K.7227))
+rownames(K.7227) <- sub("[[:digit:]]+.", "", rownames(K.7227))
 
 # load target class (Proteasome)
 kegg.dme <- getGeneKEGGLinks(species.KEGG='dme')
-index <- match(kegg.dme[,2],'path:dme03050')
-path.03050 <- 1:length(index)
-index2 <- path.03050[index]
-path.03050 <- path.03050[is.na(index2)==FALSE]
-path.03050 <- kegg.dme[path.03050,1]
-path.03050 <- sub('.*\\_','',path.03050)
+index <- which(kegg.dme[,2] == 'path:dme03050')
+path.03050 <- kegg.dme[index,1]
+path.03050 <- sub('.*\\_', '', path.03050)
 head(path.03050)
 
 library(org.Dm.eg.db)
-path2.03050 <- select(org.Dm.eg.db, keys=path.03050,
+path2.03050 <- select(org.Dm.eg.db, keys = path.03050,
                       "FLYBASEPROT", keytype = 'ALIAS')[,2]
 
-dme03050.infer <- net.infer(path2.03050, K.7227, top=100)
+dme03050.infer <- net.infer(path2.03050, K.7227, top = 100)
 gene.id <- data.frame(dme03050.infer$top)[,1]
 head(gene.id)
 rm(K.7227)
@@ -483,86 +605,89 @@ gene.id2 <- as.vector(na.omit(select(org.Dm.eg.db,
                           keys=as.character(gene.id), "ENTREZID",
                           keytype = 'FLYBASEPROT')[,2]))
 
-
 # functional enrichment
-params <- new("GOHyperGParams", geneIds=gene.id2,annotation="org.Dm.eg.db",
-              ontology="BP",pvalueCutoff=0.001,conditional=FALSE,
+params <- new("GOHyperGParams", geneIds = gene.id2, annotation = "org.Dm.eg.db",
+              ontology = "BP", pvalueCutoff = 0.001, conditional = FALSE,
               testDirection="over")
 (hgOver <- hyperGTest(params))
-ORA.plot(hgOver, plot = FALSE)
-ORA.plot(hgOver)
 
+# Top 10 biological functions related to Proteasome
+ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+            count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
 ############################## Arabidopsis thaliana
+# string.db.3702 <- STRINGdb$new(version='10', species = 3702)
+# string.db.3702.graph <- string.db.3702$get_graph()
+# K.3702 <- net.kernel(string.db.3702.graph)
+# saveRDS(K.3702, 'K3702.rds')
 K.3702 <- readRDS("K3702.rds")
 dim(K.3702)
-rownames(K.3702) <- sub("[[:digit:]]+.","", rownames(K.3702))
-colnames(K.3702) <- sub("[[:digit:]]+.","", colnames(K.3702))
-rownames(K.3702) <- gsub("\\..*","", rownames(K.3702))
-colnames(K.3702) <- gsub("\\..*","", colnames(K.3702))
+rownames(K.3702) <- sub("[[:digit:]]+.", "", rownames(K.3702))
+rownames(K.3702) <- gsub("\\..*", "", rownames(K.3702))
 
 # load target class (Photosynthesis)
-kegg.ath <- getGeneKEGGLinks(species.KEGG='ath')
-index <- match(kegg.ath[,2],'path:ath00195')
-path.00195 <- 1:length(index)
-index2 <- path.00195[index]
-path.00195 <- path.00195[is.na(index2)==FALSE]
-path.00195 <- kegg.ath[path.00195,1]
-path.00195 <- sub('.*\\_','',path.00195)
+kegg.ath <- getGeneKEGGLinks(species.KEGG = 'ath')
+index <- which(kegg.ath[,2] == 'path:ath00195')
+path.00195 <- kegg.ath[index,1]
+path.00195 <- sub('.*\\_', '', path.00195)
 head(path.00195)
 
-ath00195.infer <- net.infer(path.00195, K.3702, top=100)
+ath00195.infer <- net.infer(path.00195, K.3702, top = 100)
 gene.id <- data.frame(ath00195.infer$top)[,1]
 head(gene.id)
 rm(K.3702)
 
 # functional enrichment
-params <- new("GOHyperGParams", geneIds=gene.id, annotation="org.At.tair.db",
-              ontology="BP",pvalueCutoff=0.001,conditional=FALSE,
+params <- new("GOHyperGParams", geneIds = gene.id, annotation = "org.At.tair.db",
+              ontology = "BP",pvalueCutoff = 0.001,conditional = FALSE,
               testDirection="over")
 (hgOver <- hyperGTest(params))
-ORA.plot(hgOver, plot = FALSE)
-ORA.plot(hgOver)
 
+# Top 10 biological functions related to Photosynthesis
+ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+            count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
 ############################## Zebra fish
+# string.db.7955 <- STRINGdb$new(version='10', species = 7955)
+# string.db.7955.graph <- string.db.7955$get_graph()
+# K.7955 <- net.kernel(string.db.7955.graph)
+# saveRDS(K.7955, 'K7955.rds')
 K.7955 <- readRDS("K7955.rds")
 dim(K.7955)
-rownames(K.7955) <- sub("[[:digit:]]+.","", rownames(K.7955))
-colnames(K.7955) <- sub("[[:digit:]]+.","", colnames(K.7955))
+rownames(K.7955) <- sub("[[:digit:]]+.", "", rownames(K.7955))
 
 # load target class (ErbB signaling pathway)
-kegg.dre <- getGeneKEGGLinks(species.KEGG='dre')
-index <- match(kegg.dre[,2],'path:dre04012')
-path.04012 <- 1:length(index)
-index2 <- path.04012[index]
-path.04012 <- path.04012[is.na(index2)==FALSE]
-path.04012 <- kegg.dre[path.04012,1]
-path.04012 <- sub('.*\\_','',path.04012)
+kegg.dre <- getGeneKEGGLinks(species.KEGG = 'dre')
+index <- which(kegg.dre[,2] == 'path:dre04012')
+path.04012 <- kegg.dre[index,1]
+path.04012 <- sub('.*\\_', '', path.04012)
 head(path.04012)
 
 library(org.Dr.eg.db)
 path2.04012 <- select(org.Dr.eg.db, path.04012, c("ENSEMBLPROT"))[,2]
 
-dre04012.infer <- net.infer(path2.04012, K.7955, top=100)
+dre04012.infer <- net.infer(path2.04012, K.7955, top = 100)
 gene.id <- data.frame(dre04012.infer$top)[,1]
 head(gene.id)
 rm(K.7955)
 
 gene.id2 <- as.vector(na.omit(select(org.Dr.eg.db,
-                                     keys=as.character(gene.id), "ENTREZID",
+                                     keys = as.character(gene.id), "ENTREZID",
                                      keytype = 'ENSEMBLPROT')[,2]))
 
 # functional enrichment
-params <- new("GOHyperGParams", geneIds=gene.id2,annotation="org.Dr.eg.db",
-              ontology="BP",pvalueCutoff=0.001,conditional=FALSE,
-              testDirection="over")
+params <- new("GOHyperGParams", geneIds = gene.id2, annotation = "org.Dr.eg.db",
+              ontology = "BP",pvalueCutoff = 0.001, conditional = FALSE,
+              testDirection = "over")
 (hgOver <- hyperGTest(params))
-ORA.plot(hgOver, plot = FALSE)
-ORA.plot(hgOver)
+
+# Top 10 biological functions related to ErbB signaling pathway
+ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+            count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 @
+
 
 
 

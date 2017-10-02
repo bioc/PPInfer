@@ -2,8 +2,10 @@
 exportPattern("^[^\\.]")
 
 import(biomaRt)
+import(fgsea)
+import(ggplot2)
 import(igraph)
-import(kernlab)
+import(kernlab, except = alpha)
 import(STRINGdb)
 import(yeastExpData)
 
