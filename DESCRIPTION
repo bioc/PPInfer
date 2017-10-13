@@ -10,6 +10,6 @@ Maintainer: Dongmin Jung <dmdmjung@gmail.com>
 Depends: biomaRt, fgsea, kernlab, ggplot2, igraph, STRINGdb, yeastExpData
 Suggests: testthat
 License: Artistic-2.0
-biocViews: Software, Statistical Method, Network, Graph And Network
+biocViews: Software, Statistical Method, Network, Graph And Network, GeneSetEnrichment
 NeedsCompilation: no
 
