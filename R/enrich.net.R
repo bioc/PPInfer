@@ -108,4 +108,5 @@ enrich.net <- function(x, gene.set, node.id, node.name = node.id, pvalue,
     legend.parameter$text.col <- group.color
     do.call(legend, legend.parameter)
   }
+  return(g)
 }
