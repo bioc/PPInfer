@@ -84,8 +84,7 @@ geneNames <- names(exampleRanks)
 set.seed(1)
 gene.id <- sample(geneNames, 100)
 result.ORA <- ORA(examplePathways, gene.id)
-category <- rownames(result.ORA)
-ORA.dotplot(data.frame(category, result.ORA), category = "category",
+ORA.dotplot(result.ORA, category = "Category",
             size = "Size", count = "Count", pvalue = "pvalue",
             sort = "pvalue") + scale_colour_gradient(low = 'red',
             high = 'gray', limits=c(0, 0.1))
