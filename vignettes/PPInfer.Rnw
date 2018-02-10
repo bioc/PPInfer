@@ -151,7 +151,7 @@ result.ORA <- ORA(examplePathways, gene.id[1:10])
 \begin{figure}[H]
 \centering
 <<fig=TRUE, results=hide>>=
-ORA.dotplot(result.ORA, category = "Category", size = "Size",
+ORA.barplot(result.ORA, category = "Category", size = "Size",
             count = "Count", pvalue = "pvalue", sort = "pvalue") +
             scale_colour_gradient(low = 'red', high = 'gray', limits=c(0, 0.1))
 @
@@ -177,8 +177,7 @@ result.GSEA <- fgsea(examplePathways, scaled.scores, nperm=1000)
 \centering
 <<fig=TRUE>>=
 GSEA.barplot(result.GSEA, category = 'pathway', score = 'NES', pvalue = 'pval',
-             numChar = 50, sort = 'NES', decreasing = TRUE) +
-             scale_fill_continuous(low = 'red', high = 'green')
+             numChar = 50, sort = 'NES', decreasing = TRUE)
 @
 \caption{Result from the gene set enrichment analysis}
 \end{figure}
@@ -253,7 +252,7 @@ params <- new("GOHyperGParams", geneIds = gene.id,annotation = "org.Hs.eg.db",
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to apoptosis by using GO terms
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 # KEGG pathway
@@ -262,7 +261,7 @@ params <- new("KEGGHyperGParams", geneIds = gene.id, annotation = "org.Hs.eg.db"
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to apoptosis by using KEGG pathways
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 @
 
@@ -366,7 +365,7 @@ params <- new("GOHyperGParams", geneIds = gene.id[1:100],
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to Acute myeloid leukemia
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 # GSEA
@@ -413,7 +412,7 @@ params <- new("KEGGHyperGParams", geneIds = gene.id[1:100],
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to Ras signaling pathway
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 # GSEA
@@ -503,7 +502,7 @@ params <- new("GOHyperGParams", geneIds = gene.id, annotation = "org.Sc.sgd.db",
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to Cell cycle
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
@@ -540,7 +539,7 @@ params <- new("GOHyperGParams", geneIds = gene.id2, annotation = "org.Ce.eg.db",
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to DNA replication
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
@@ -580,7 +579,7 @@ params <- new("GOHyperGParams", geneIds = gene.id2, annotation = "org.Dm.eg.db",
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to Proteasome
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
@@ -613,7 +612,7 @@ params <- new("GOHyperGParams", geneIds = gene.id, annotation = "org.At.tair.db"
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to Photosynthesis
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
@@ -652,7 +651,7 @@ params <- new("GOHyperGParams", geneIds = gene.id2, annotation = "org.Dr.eg.db",
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to ErbB signaling pathway
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 @
 

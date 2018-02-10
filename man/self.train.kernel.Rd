@@ -58,7 +58,7 @@ Torgo, L. (2016) Data Mining using R: learning with case studies, second edition
 \examples{
 data(litG)
 litG <- igraph.from.graphNEL(litG)
-sg <- decompose(litG, min.vertices=50)
+sg <- decompose(litG, min.vertices = 50)
 sg <- sg[[1]]
 K <- net.kernel(sg)
 y <- rep(NA, length(V(sg)))
