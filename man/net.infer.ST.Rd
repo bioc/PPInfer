@@ -6,19 +6,15 @@ Inferring functionally related proteins with self training
 }
 \description{This function is the self-training version of net.infer. The function net.infer is the special case of net.infer.ST where a single iteration is conducted.}
 \usage{
-net.infer.ST(target, kernel, top = NULL, C1 = 1, nu = 0.2,
+net.infer.ST(target, kernel, top = NULL, C = 1, nu = 0.2,
             epsilon = 0.1, cache1 = 40, tol1 = 0.001, shrinking1 = TRUE,
-            C2 = 1, cache2 = 40, tol2 = 0.001, shrinking2 = TRUE,
-            thrConf = 0.9, maxIts = 10, percFull = 1, verbose = FALSE) 
+            cache2 = 40, tol2 = 0.001, shrinking2 = TRUE, thrConf = 0.9,
+            maxIts = 10, percFull = 1, verbose = FALSE) 
 }
 
 \arguments{
   \item{target}{
-<<<<<<< HEAD
 set of interesting proteins or target class
-=======
-list of interesting proteins or target class
->>>>>>> upstream/RELEASE_3_5
 }
   \item{kernel}{
 the regularized Laplacian matrix for a graph
@@ -26,8 +22,8 @@ the regularized Laplacian matrix for a graph
   \item{top}{
 number of top proteins most closely related to target class  (default: all proteins except for target and pseudo-absence class)
 }
-  \item{C1}{
-cost of constraints violation for OCSVM (default: 1)
+  \item{C}{
+cost of constraints violation for SVM (default: 1)
 }
   \item{nu}{
 The nu parameter for OCSVM (default: 0.2)
@@ -43,9 +39,6 @@ tolerance of termination criterion for OCSVM (default: 0.001)
 }
   \item{shrinking1}{
 option whether to use the shrinking-heuristics for OCSVM (default: TRUE)
-}
-  \item{C2}{
-cost of constraints violation (default: 1) for SVM
 }
   \item{cache2}{
 cache memory in MB for SVM (default: 40)
@@ -97,10 +90,10 @@ decision values for top proteins
 \examples{
 data(litG)
 litG <- igraph.from.graphNEL(litG)
-sg <- decompose(litG, min.vertices=50)
+sg <- decompose(litG, min.vertices = 50)
 sg <- sg[[1]]
 K <- net.kernel(sg)
-litG.infer.ST <- net.infer.ST(names(V(sg))[1:10],K,top=20)
+litG.infer.ST <- net.infer.ST(names(V(sg))[1:10], K, top=20)
 }
 
 

@@ -1,5 +1,5 @@
-\name{ORA.dotplot}
-\alias{ORA.dotplot}
+\name{ORA.barplot}
+\alias{ORA.barplot}
 
 \title{
 Visualize the over-representation analysis
@@ -8,7 +8,7 @@ Visualize the over-representation analysis
 For the functional enrichment analysis, we can visualize the result from the over-representation analysis.
 }
 \usage{
-ORA.dotplot(object, category, size, count, pvalue, top = 10,
+ORA.barplot(object, category, size, count, pvalue, top = 10,
             sort = NULL, decreasing = FALSE, p.adjust.methods = NULL,
             numChar = NULL, title = NULL, transparency = 0.5,
             plot = TRUE)
@@ -58,7 +58,7 @@ return plot when plot is true, otherwise return table (default: TRUE)
 
 
 \value{
-ORA dotplot
+ORA barplot
 }
 
 
@@ -84,11 +84,8 @@ geneNames <- names(exampleRanks)
 set.seed(1)
 gene.id <- sample(geneNames, 100)
 result.ORA <- ORA(examplePathways, gene.id)
-category <- rownames(result.ORA)
-ORA.dotplot(data.frame(category, result.ORA), category = "category",
-            size = "Size", count = "Count", pvalue = "pvalue",
-            sort = "pvalue") + scale_colour_gradient(low = 'red',
-            high = 'gray', limits=c(0, 0.1))
+ORA.barplot(result.ORA, category = "Category", size = "Size",
+            count = "Count", pvalue = "pvalue", sort = "pvalue")
 }
 
 

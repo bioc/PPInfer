@@ -9,7 +9,7 @@ This function is designed for mouse protein-protein interaction from STRING data
 }
 \usage{
 ppi.infer.mouse(target, kernel, top = 10, classifier = net.infer,
-  input = "mgi_symbol", output = "mgi_symbol", ...)
+                input = "mgi_symbol", output = "mgi_symbol", ...)
 }
 
 \arguments{
@@ -70,14 +70,13 @@ Dongmin Jung, Xijin Ge
 net.infer, net.infer.ST, getBM
 }
 \examples{
-string.db.10090 <- STRINGdb$new(version='10',species=10090,
-score_threshold = 999)
+string.db.10090 <- STRINGdb$new(version = '10', species = 10090,
+                                score_threshold = 999)
 string.db.10090.graph <- string.db.10090$get_graph()
 K.10090 <- net.kernel(string.db.10090.graph)
-rownames(K.10090) <- substring(rownames(K.10090),7)
-colnames(K.10090) <- substring(colnames(K.10090),7)
+rownames(K.10090) <- substring(rownames(K.10090), 7)
+colnames(K.10090) <- substring(colnames(K.10090), 7)
 target <- colnames(K.10090)[1:100]
-infer.mouse <- ppi.infer.mouse(target,K.10090,
-input="ensembl_peptide_id")
+infer.mouse <- ppi.infer.mouse(target, K.10090, input="ensembl_peptide_id")
 }
 

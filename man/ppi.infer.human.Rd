@@ -9,7 +9,7 @@ This function is designed for human protein-protein interaction from STRING data
 }
 \usage{
 ppi.infer.human(target, kernel, top = 10, classifier = net.infer,
-  input = "hgnc_symbol", output = "hgnc_symbol", ...)
+                input = "hgnc_symbol", output = "hgnc_symbol", ...)
 }
 
 \arguments{
@@ -71,39 +71,38 @@ net.infer, net.infer.ST, getBM
 }
 \examples{
 # example 1
-string.db.9606 <- STRINGdb$new(version='10',species=9606,
-score_threshold = 999)
+string.db.9606 <- STRINGdb$new(version = '10', species = 9606,
+                               score_threshold = 999)
 string.db.9606.graph <- string.db.9606$get_graph()
 K.9606 <- net.kernel(string.db.9606.graph)
-rownames(K.9606) <- substring(rownames(K.9606),6)
-colnames(K.9606) <- substring(colnames(K.9606),6)
+rownames(K.9606) <- substring(rownames(K.9606), 6)
+colnames(K.9606) <- substring(colnames(K.9606), 6)
 target <- colnames(K.9606)[1:100]
-infer.human <- ppi.infer.human(target, K.9606,
-input="ensembl_peptide_id")
+infer.human <- ppi.infer.human(target, K.9606, input = "ensembl_peptide_id")
 
 \dontrun{
 # example 2
 library(graph)
 data(apopGraph)
 target <- nodes(apopGraph)
-apoptosis.infer <- ppi.infer.human(target,K.9606,100)
+apoptosis.infer <- ppi.infer.human(target, K.9606, 100)
 
 # example 3
 library(KEGGgraph)
 library(KEGG.db)
 pName <- "p53 signaling pathway"
 pId <- mget(pName, KEGGPATHNAME2ID)[[1]]
-getKGMLurl(pId, organism="hsa")
-p53 <- system.file("extdata/hsa04115.xml",package="KEGGgraph")
+getKGMLurl(pId, organism = "hsa")
+p53 <- system.file("extdata/hsa04115.xml", package="KEGGgraph")
 p53graph <- parseKGML2Graph(p53,expandGenes=TRUE)
 
 entrez <- translateKEGGID2GeneID(nodes(p53graph))
 ensembl <- useMart("ensembl")
 human.ensembl <- useDataset("hsapiens_gene_ensembl",mart=ensembl)
-target <- getBM(attributes=c('entrezgene','hgnc_symbol'),
-        filter='entrezgene', values=entrez,
-        mart = human.ensembl)[,2]
-p53.infer <- ppi.infer.human(target,K.9606,100)
+target <- getBM(attributes=c('entrezgene', 'hgnc_symbol'),
+                filter = 'entrezgene', values = entrez,
+                mart = human.ensembl)[,2]
+p53.infer <- ppi.infer.human(target, K.9606, 100)
 }
 }
 

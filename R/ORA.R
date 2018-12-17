@@ -27,5 +27,6 @@ ORA <- function(pathways, gene.id, minSize = 1, maxSize = Inf,
   padj <- p.adjust(pvalue, method = p.adjust.methods)
   Count <- x
   Size <- M
-  data.frame(Count, Size, pvalue, padj)
+  Category <- names(M)
+  data.frame(Category, Count, Size, pvalue, padj, row.names = NULL)
 }

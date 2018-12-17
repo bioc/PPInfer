@@ -1,8 +1,8 @@
 # inferring functionally related proteins with self training
-net.infer.ST <- function(target, kernel, top = NULL, C1 = 1, nu = 0.2, 
+net.infer.ST <- function(target, kernel, top = NULL, C = 1, nu = 0.2, 
                          epsilon = 0.1, cache1 = 40, tol1 = 0.001, shrinking1 = TRUE, 
-                         C2 = 1, cache2 = 40, tol2 = 0.001, shrinking2 = TRUE,
-                         thrConf = 0.9, maxIts = 10, percFull = 1, verbose = FALSE) 
+                         cache2 = 40, tol2 = 0.001, shrinking2 = TRUE, thrConf = 0.9,
+                         maxIts = 10, percFull = 1, verbose = FALSE) 
 {
   node <- rownames(kernel)
   n <- length(node)
@@ -19,7 +19,7 @@ net.infer.ST <- function(target, kernel, top = NULL, C1 = 1, nu = 0.2,
   new.index <- !is.na(match(node, new.target))
   train.kernel <- kernel[new.index, new.index]
   model <- ksvm(train.kernel, type = "one-svc", kernel = "matrix", 
-                C = C1, nu = nu, epsilon = epsilon, cache = cache1, tol = tol1, 
+                C = C, nu = nu, epsilon = epsilon, cache = cache1, tol = tol1, 
                 shrinking = shrinking1)
   test.kernel <- as.kernelMatrix(kernel[, new.index][, SVindex(model), 
                                                      drop = FALSE])
@@ -36,7 +36,7 @@ net.infer.ST <- function(target, kernel, top = NULL, C1 = 1, nu = 0.2,
   
   # self training
   pred.decision  <- self.train.kernel(kernel, factor(y, levels=c(0,1)), type = 'decision',
-                                      C = C2, cache = cache2, tol = tol2, shrinking = shrinking2,
+                                      C = C, cache = cache2, tol = tol2, shrinking = shrinking2,
                                       thrConf = thrConf, maxIts = maxIts,
                                       percFull = percFull, verbose = verbose)
   

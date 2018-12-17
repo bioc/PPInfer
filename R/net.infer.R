@@ -1,8 +1,8 @@
 # inferring functionally related proteins using networks
 net.infer <- function(target, kernel, top=NULL, cross=0,
-                      C1 = 1, nu = 0.2, epsilon = 0.1, cache1 = 40,
-                      tol1 = 0.001, shrinking1 = TRUE, C2 = 1,
-                      cache2 = 40, tol2 = 0.001, shrinking2 = TRUE)
+                      C = 1, nu = 0.2, epsilon = 0.1, cache1 = 40,
+                      tol1 = 0.001, shrinking1 = TRUE, cache2 = 40,
+                      tol2 = 0.001, shrinking2 = TRUE)
 {
   # find new list
   node <- rownames(kernel)
@@ -20,7 +20,7 @@ net.infer <- function(target, kernel, top=NULL, cross=0,
   new.index <- !is.na(match(node,new.target))
   train.kernel <- kernel[new.index,new.index]
   model <- ksvm(train.kernel, type="one-svc",kernel="matrix",
-                C = C1, nu = nu, epsilon = epsilon, cache = cache1,
+                nu = nu, epsilon = epsilon, cache = cache1,
                 tol = tol1, shrinking = shrinking1)
   # predict
   test.kernel <- as.kernelMatrix(kernel[,new.index][,SVindex(model), drop=FALSE]) 
@@ -46,7 +46,7 @@ net.infer <- function(target, kernel, top=NULL, cross=0,
   
   # train
   model <- ksvm(kernel[y!="NA", y!="NA"], as.numeric(y[y!="NA"]),
-                type="C-svc", C=C2, kernel="matrix", cross=cross,
+                type = "C-svc", C = C, kernel="matrix", cross=cross,
                 cache = cache2, tol = tol2, shrinking = shrinking2)
   
   

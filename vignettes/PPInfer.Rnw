@@ -151,8 +151,7 @@ result.ORA <- ORA(examplePathways, gene.id[1:10])
 \begin{figure}[H]
 \centering
 <<fig=TRUE, results=hide>>=
-category <- rownames(result.ORA)
-ORA.dotplot(data.frame(category, result.ORA), category = "category", size = "Size",
+ORA.barplot(result.ORA, category = "Category", size = "Size",
             count = "Count", pvalue = "pvalue", sort = "pvalue") +
             scale_colour_gradient(low = 'red', high = 'gray', limits=c(0, 0.1))
 @
@@ -178,8 +177,7 @@ result.GSEA <- fgsea(examplePathways, scaled.scores, nperm=1000)
 \centering
 <<fig=TRUE>>=
 GSEA.barplot(result.GSEA, category = 'pathway', score = 'NES', pvalue = 'pval',
-             numChar = 50, sort = 'NES', decreasing = TRUE) +
-             scale_fill_continuous(low = 'red', high = 'green')
+             numChar = 50, sort = 'NES', decreasing = TRUE)
 @
 \caption{Result from the gene set enrichment analysis}
 \end{figure}
@@ -216,43 +214,7 @@ In the network, the connection between nodes depends on the proportion of overla
 
 \subsection{Download the kernel matrix}
 
-We need a list of proteins and the kernel matrix to infer functionally related proteins. For the database for kernel matrix, we use the STRING data for protein-protein interactions for human and mouse. You do not have to calculate these kernel matrices. To save significant time, you can download kernel matrices at \texttt{http://ge-lab.org/dm/K9606.rds} for human and \texttt{http://ge-lab.org/dm/K10090.rds} for mouse.
-
-<<eval=TRUE>>=
-# K.9606 <- readRDS(gzcon(url("http://ge-lab.org/dm/K9606.rds")))
-# K.10090 <- readRDS(gzcon(url("http://ge-lab.org/dm/K10090.rds")))
-
-library(httr)
-download.kernel <- function(species, overwrite = FALSE)
-{
-  # If they exist, load the matrix. These kernels are calculated from
-  # the STRING database with the version 10 and score threshold 400.
-  # There is a progress bar for downloading.
-  # species : Only two species, "9606" for human or "10090" for mouse
-  # overwrite : overwrite existing files (default: FALSE)
-  
-  URL <- paste("http://ge-lab.org/dm/K", species, ".rds", sep="")
-  if(overwrite)
-  {
-    GET(URL, write_disk(paste("K", species, ".rds", sep=""),
-                        overwrite = overwrite), progress())
-  }
-  else
-  {
-    if(!file.exists(paste("K", species, ".rds", sep="")))
-    {
-      GET(URL, write_disk(paste("K", species, ".rds", sep="")), progress())
-    }
-  }
-  
-  K <- readRDS(paste("K", species, ".rds", sep=""))
-  # remove prefix
-  rownames(K) <- sub('.*\\.','',rownames(K))
-  K
-}
-@
-
-
+We need a list of proteins and the kernel matrix to infer functionally related proteins. For the database for kernel matrix, we use the STRING data for protein-protein interactions for human and mouse. You do not have to calculate these kernel matrices. To save significant time, you can download kernel matrices at \texttt{https://zenodo.org/record/1066236} for human and mouse.
 
 
 
@@ -263,8 +225,11 @@ Consider two examples for human. First, we can find proteins related to apoptosi
 <<eval=FALSE>>=
 library(GOstats)
 
-# download kernel matrix
-K.9606 <- download.kernel("9606")
+# load kernel matrix
+K.9606 <- readRDS("K9606.rds")
+
+# remove prefix
+rownames(K.9606) <- sub(".*\\.", "", rownames(K.9606))
 
 # load target class from KEGG apoptosis pathway
 data(apopGraph)
@@ -277,7 +242,7 @@ There are many types of protein ID or gene ID. By using \texttt{getBM} in \textt
 <<eval=FALSE>>=
 # find top 100 proteins
 apoptosis.infer <- ppi.infer.human(list.proteins, K.9606, output="entrezgene", 100)
-gene.id <- data.frame(apoptosis.infer$top)[,1]
+gene.id <- apoptosis.infer$top
 head(gene.id)
 
 # GO terms
@@ -287,7 +252,7 @@ params <- new("GOHyperGParams", geneIds = gene.id,annotation = "org.Hs.eg.db",
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to apoptosis by using GO terms
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 # KEGG pathway
@@ -296,7 +261,7 @@ params <- new("KEGGHyperGParams", geneIds = gene.id, annotation = "org.Hs.eg.db"
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to apoptosis by using KEGG pathways
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 @
 
@@ -327,7 +292,6 @@ index <- !is.na(hsa04115.infer$score)
 gene.id <- hsa04115.infer$top[index]
 scores <- hsa04115.infer$score[index]
 scaled.scores <- as.numeric(scale(scores))
-
 names(scaled.scores) <- gene.id
 
 # GO terms
@@ -360,7 +324,8 @@ set.seed(1)
 fgseaRes <- fgsea(yy, scaled.scores, nperm=1000)
 
 # Top 10 biological functions related to p53 signaling pathway by using KEGG pathways
-GSEA.barplot(fgseaRes, category = 'pathway', score = 'NES', pvalue = 'padj')
+GSEA.barplot(fgseaRes, category = 'pathway', score = 'NES', pvalue = 'padj',
+             sort = 'NES', decreasing = TRUE)
 @
 
 
@@ -374,8 +339,10 @@ GSEA.barplot(fgseaRes, category = 'pathway', score = 'NES', pvalue = 'padj')
 For mouse, we can infer functionally related proteins by \texttt{ppi.infer.mouse} with the kernel matrix for mouse. The first example is Acute myeloid leukemia.
 
 <<eval=FALSE>>=
-# download kernel matrix
-K.10090 <- download.kernel("10090")
+# load kernel matrix
+K.10090 <- readRDS("K10090.rds")
+# remove prefix
+rownames(K.10090) <- sub(".*\\.", "", rownames(K.10090))
 
 # load target class
 mget('Acute myeloid leukemia', KEGGPATHNAME2ID)
@@ -385,20 +352,20 @@ path.05221 <- kegg.mmu[index,1]
 head(path.05221)
 
 # find top 100 proteins
-path.05221.infer <- ppi.infer.mouse(path.05221, K.10090,
-                                 input="entrezgene",output="entrezgene", nrow(K.10090))
-gene.id <- data.frame(path.05221.infer$top)[,1]
+path.05221.infer <- ppi.infer.mouse(path.05221, K.10090, input="entrezgene",
+                                    output="entrezgene", nrow(K.10090))
+gene.id <- path.05221.infer$top
 head(gene.id)
 
 # ORA
 params <- new("GOHyperGParams", geneIds = gene.id[1:100],
              annotation = "org.Mm.eg.db",
-             ontology = "BP",pvalueCutoff = 0.001,
+             ontology = "BP", pvalueCutoff = 0.001,
              conditional = FALSE, testDirection = "over")
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to Acute myeloid leukemia
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 # GSEA
@@ -445,7 +412,7 @@ params <- new("KEGGHyperGParams", geneIds = gene.id[1:100],
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to Ras signaling pathway
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 # GSEA
@@ -535,7 +502,7 @@ params <- new("GOHyperGParams", geneIds = gene.id, annotation = "org.Sc.sgd.db",
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to Cell cycle
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
@@ -572,7 +539,7 @@ params <- new("GOHyperGParams", geneIds = gene.id2, annotation = "org.Ce.eg.db",
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to DNA replication
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
@@ -612,7 +579,7 @@ params <- new("GOHyperGParams", geneIds = gene.id2, annotation = "org.Dm.eg.db",
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to Proteasome
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
@@ -645,7 +612,7 @@ params <- new("GOHyperGParams", geneIds = gene.id, annotation = "org.At.tair.db"
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to Photosynthesis
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 
 
@@ -684,7 +651,7 @@ params <- new("GOHyperGParams", geneIds = gene.id2, annotation = "org.Dr.eg.db",
 (hgOver <- hyperGTest(params))
 
 # Top 10 biological functions related to ErbB signaling pathway
-ORA.dotplot(summary(hgOver), category = "Term", size = "Size",
+ORA.barplot(summary(hgOver), category = "Term", size = "Size",
             count = "Count", pvalue = "Pvalue", p.adjust.methods = 'fdr')
 @
 
