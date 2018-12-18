@@ -76,8 +76,7 @@ data(exampleRanks)
 set.seed(1)
 result.GSEA <- fgsea(examplePathways, exampleRanks, nperm = 1000)
 GSEA.barplot(result.GSEA, category = 'pathway', score = 'NES',
-             pvalue = 'pval', sort = 'NES', decreasing = TRUE) +
-             scale_fill_continuous(low = 'red', high = 'green')
+             pvalue = 'pval', sort = 'NES', decreasing = TRUE)
 }
 
 
