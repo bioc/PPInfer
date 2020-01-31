@@ -94,7 +94,7 @@ ksvm
 \examples{
 # example 1
 \dontrun{
-string.db.9606 <- STRINGdb$new(version = '10',species = 9606,
+string.db.9606 <- STRINGdb$new(species = 9606,
                                score_threshold = 999)
 string.db.9606.graph <- string.db.9606$get_graph()
 K.9606 <- net.kernel(string.db.9606.graph)
