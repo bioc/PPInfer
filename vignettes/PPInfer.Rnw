@@ -458,7 +458,7 @@ We discussed about how to infer functionally related proteins for human and mous
 
 <<eval=FALSE>>=
 ############################## E. coli
-string.db.511145 <- STRINGdb$new(species = 511145)
+string.db.511145 <- STRINGdb$new(version = '11', species = 511145)
 string.db.511145.graph <- string.db.511145$get_graph()
 K.511145 <- net.kernel(string.db.511145.graph)
 rownames(K.511145) <- sub("[[:digit:]]+.", "", rownames(K.511145))
@@ -476,7 +476,7 @@ rm(K.511145)
 
 
 ############################## yeast
-# string.db.4932 <- STRINGdb$new(species = 4932)
+# string.db.4932 <- STRINGdb$new(version = '11', species = 4932)
 # string.db.4932.graph <- string.db.4932$get_graph()
 # K.4932 <- net.kernel(string.db.4932.graph)
 # saveRDS(K.4932, 'K4932.rds')
@@ -507,7 +507,7 @@ ORA.barplot(summary(hgOver), category = "Term", size = "Size",
 
 
 ############################## C. elegans
-# string.db.6239 <- STRINGdb$new(species = 6239)
+# string.db.6239 <- STRINGdb$new(version = '11', species = 6239)
 # string.db.6239.graph <- string.db.6239$get_graph()
 # K.6239 <- net.kernel(string.db.6239.graph)
 # saveRDS(K.6239, 'K6239.rds')
@@ -544,7 +544,7 @@ ORA.barplot(summary(hgOver), category = "Term", size = "Size",
 
 
 ############################## Drosophila melanogaster
-# string.db.7227 <- STRINGdb$new(species = 7227)
+# string.db.7227 <- STRINGdb$new(version = '11', species = 7227)
 # string.db.7227.graph <- string.db.7227$get_graph()
 # K.7227 <- net.kernel(string.db.7227.graph)
 # saveRDS(K.7227, 'K7227.rds')
@@ -584,7 +584,7 @@ ORA.barplot(summary(hgOver), category = "Term", size = "Size",
 
 
 ############################## Arabidopsis thaliana
-# string.db.3702 <- STRINGdb$new(species = 3702)
+# string.db.3702 <- STRINGdb$new(version = '11', species = 3702)
 # string.db.3702.graph <- string.db.3702$get_graph()
 # K.3702 <- net.kernel(string.db.3702.graph)
 # saveRDS(K.3702, 'K3702.rds')
@@ -617,7 +617,7 @@ ORA.barplot(summary(hgOver), category = "Term", size = "Size",
 
 
 ############################## Zebra fish
-# string.db.7955 <- STRINGdb$new(species = 7955)
+# string.db.7955 <- STRINGdb$new(version = '11', species = 7955)
 # string.db.7955.graph <- string.db.7955$get_graph()
 # K.7955 <- net.kernel(string.db.7955.graph)
 # saveRDS(K.7955, 'K7955.rds')

@@ -70,7 +70,7 @@ Dongmin Jung, Xijin Ge
 net.infer, net.infer.ST, getBM
 }
 \examples{
-string.db.10090 <- STRINGdb$new(species = 10090,
+string.db.10090 <- STRINGdb$new(version = '11', species = 10090,
                                 score_threshold = 999)
 string.db.10090.graph <- string.db.10090$get_graph()
 K.10090 <- net.kernel(string.db.10090.graph)
