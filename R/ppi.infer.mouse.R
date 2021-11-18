@@ -2,8 +2,7 @@
 ppi.infer.mouse <- function (target, kernel, top = 10, classifier = net.infer,
                              input = "mgi_symbol", output = "mgi_symbol", ...) 
 {
-  ensembl <- useMart("ensembl")
-  mouse.ensembl <- useDataset("mmusculus_gene_ensembl", mart = ensembl)
+  mouse.ensembl <- useEnsembl(biomart = "ensembl", dataset = "mmusculus_gene_ensembl")
   
   # input
   new.list <- getBM(attributes = c("ensembl_peptide_id", input), 
