@@ -97,6 +97,7 @@ p53 <- system.file("extdata/hsa04115.xml", package="KEGGgraph")
 p53graph <- parseKGML2Graph(p53,expandGenes=TRUE)
 
 entrez <- translateKEGGID2GeneID(nodes(p53graph))
+httr::set_config(httr::config(ssl_verifypeer = FALSE))
 human.ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
 target <- getBM(attributes=c('entrezgene', 'hgnc_symbol'),
                 filter = 'entrezgene', values = entrez,

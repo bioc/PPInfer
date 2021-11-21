@@ -8,4 +8,4 @@ import(igraph)
 import(kernlab, except = alpha)
 import(STRINGdb)
 import(yeastExpData)
-
+importFrom("httr", "config", "set_config")
