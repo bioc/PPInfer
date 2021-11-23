@@ -2,8 +2,8 @@
 ppi.infer.human <- function (target, kernel, top = 10, classifier = net.infer,
                              input = "hgnc_symbol", output = "hgnc_symbol", ...) 
 {
-  ensembl <- useMart("ensembl")
-  human.ensembl <- useDataset("hsapiens_gene_ensembl", mart = ensembl)
+  httr::set_config(httr::config(ssl_verifypeer = FALSE))
+  human.ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
   
   # input
   new.list <- getBM(attributes = c("ensembl_peptide_id", input), 
