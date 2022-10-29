@@ -3,7 +3,7 @@ ppi.infer.mouse <- function (target, kernel, top = 10, classifier = net.infer,
                              input = "mgi_symbol", output = "mgi_symbol", ...) 
 {
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
-  mouse.ensembl <- useEnsembl(biomart = "ensembl", dataset = "mmusculus_gene_ensembl")
+  mouse.ensembl <- useEnsembl(biomart = "ensembl", dataset = "mmusculus_gene_ensembl", host = "https://www.ensembl.org")
   
   # input
   new.list <- getBM(attributes = c("ensembl_peptide_id", input), 

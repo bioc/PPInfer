@@ -3,7 +3,7 @@ ppi.infer.human <- function (target, kernel, top = 10, classifier = net.infer,
                              input = "hgnc_symbol", output = "hgnc_symbol", ...) 
 {
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
-  human.ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+  human.ensembl <- useEnsembl(biomart = "ensembl", dataset = "hsapiens_gene_ensembl", host = "https://www.ensembl.org")
   
   # input
   new.list <- getBM(attributes = c("ensembl_peptide_id", input), 
