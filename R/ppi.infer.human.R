@@ -3,6 +3,7 @@ ppi.infer.human <- function (target, kernel, top = 10, classifier = net.infer,
                              input = "hgnc_symbol", output = "hgnc_symbol", ...) 
 {
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
+  human.ensembl <- NULL
   tryCatch({
     human.ensembl <- useEnsembl(biomart = "ensembl",
                                 dataset = "hsapiens_gene_ensembl",
@@ -11,6 +12,7 @@ ppi.infer.human <- function (target, kernel, top = 10, classifier = net.infer,
   error = function(e){
     message("\nCould not connect to ENSEMBL. With error: `", e, "`.")
   })
+  if(is.null(human.ensembl)) return()
   
   # input
   new.list <- getBM(attributes = c("ensembl_peptide_id", input), 

@@ -3,6 +3,7 @@ ppi.infer.mouse <- function (target, kernel, top = 10, classifier = net.infer,
                              input = "mgi_symbol", output = "mgi_symbol", ...) 
 {
   httr::set_config(httr::config(ssl_verifypeer = FALSE))
+  mouse.ensembl <- NULL
   tryCatch({
     mouse.ensembl <- useEnsembl(biomart = "ensembl",
                                 dataset = "mmusculus_gene_ensembl",
@@ -11,6 +12,7 @@ ppi.infer.mouse <- function (target, kernel, top = 10, classifier = net.infer,
   error = function(e){
     message("\nCould not connect to ENSEMBL. With error: `", e, "`.")
   })
+  if(is.null(mouse.ensembl)) return()
   
   # input
   new.list <- getBM(attributes = c("ensembl_peptide_id", input), 
